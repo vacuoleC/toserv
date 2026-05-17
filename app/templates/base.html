@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}信息管理系统{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% block header %}
+    <header class="header">
+        <div class="header-left">
+            <h1>信息管理系统</h1>
+        </div>
+        <div class="header-right">
+            {% if current_user.is_authenticated %}
+                <span>欢迎，{{ current_user.username }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">退出登录</a>
+            {% endif %}
+        </div>
+    </header>
+    {% endblock %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+
+    {% block footer %}
+    <footer class="footer">
+        <p>&copy; 2024 信息管理系统</p>
+    </footer>
+    {% endblock %}
+</body>
+</html>

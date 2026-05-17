@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}主页 - 信息管理系统{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="toolbar">
+        <a href="{{ url_for('main.new_record') }}" class="btn btn-primary">新增记录</a>
+        <button type="button" class="btn btn-danger" id="batch-delete-btn" style="display:none;">批量删除</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table" id="records-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>标题</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in pagination.items %}
+                <tr data-record-id="{{ record.id }}">
+                    <td><input type="checkbox" class="record-checkbox" value="{{ record.id }}"></td>
+                    <td>
+                        <a href="{{ url_for('main.view_record', record_id=record.id) }}">{{ record.title }}</a>
+                    </td>
+                    <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <a href="{{ url_for('main.edit_record', record_id=record.id) }}" class="btn btn-sm">编辑</a>
+                        <form method="POST" action="{{ url_for('main.delete_record', record_id=record.id) }}" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('确定删除？')">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="empty-message">暂无记录，点击"新增记录"创建</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.batch_delete_records') }}" id="batch-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    </form>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('main.index', page=pagination.prev_num) }}">&laquo; 上一页</a>
+        {% endif %}
+        <span>第 {{ pagination.page }} / {{ pagination.pages }} 页</span>
+        {% if pagination.has_next %}
+            <a href="{{ url_for('main.index', page=pagination.next_num) }}">下一页 &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var selectAll = document.getElementById('select-all');
+    var batchDeleteBtn = document.getElementById('batch-delete-btn');
+    var batchForm = document.getElementById('batch-form');
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            var checkboxes = document.querySelectorAll('.record-checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = selectAll.checked;
+            }
+            toggleBatchButton();
+        });
+    }
+
+    var checkboxes = document.querySelectorAll('.record-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].addEventListener('change', toggleBatchButton);
+    }
+
+    if (batchDeleteBtn) {
+        batchDeleteBtn.addEventListener('click', function() {
+            if (confirm('确定删除选中的记录？')) {
+                var checked = document.querySelectorAll('.record-checkbox:checked');
+                for (var j = 0; j < checked.length; j++) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'record_ids';
+                    input.value = checked[j].value;
+                    batchForm.appendChild(input);
+                }
+                batchForm.submit();
+            }
+        });
+    }
+
+    function toggleBatchButton() {
+        var checked = document.querySelectorAll('.record-checkbox:checked');
+        var btn = document.getElementById('batch-delete-btn');
+        if (btn) {
+            btn.style.display = checked.length > 0 ? 'inline-block' : 'none';
+        }
+    }
+})();
+</script>
+{% endblock %}

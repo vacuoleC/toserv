@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}查看记录 - 信息管理系统{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>{{ record.title }}</h2>
+    <div class="record-meta">
+        <span>创建于 {{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        {% if record.updated_at != record.created_at %}
+            <span>，更新于 {{ record.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        {% endif %}
+    </div>
+    <div class="record-content">
+        {{ record.content or "（无内容）" }}
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline">返回列表</a>
+        <a href="{{ url_for('main.edit_record', record_id=record.id) }}" class="btn btn-primary">编辑</a>
+    </div>
+</div>
+{% endblock %}
